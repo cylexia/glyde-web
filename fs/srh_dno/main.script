@@ -1,0 +1,125 @@
+:START
+    f.setWidth 500 height 500
+	f.setTitle ""
+
+	f.loadResource "srh_dno/main.map" as "res"
+	
+	gosub :CALC_TODAY
+	
+	ENTRY = @ ""
+	VALUE = @ CULL_DAY
+	gosub :MAIN_UI
+	stop
+	
+
+
+:MAIN_UI
+	f.clear
+	f.drawAs "bg" atX 0 y 0 id "res.all"
+	
+	gosub :SHOW_NUM
+	gosub :SHOW_VALUE
+
+	f.writeAs "1" atX 15 y 170 width 75 height 75 value "1" onClickGoto :NUM
+	f.writeAs "2" atX 95 y 170 width 75 height 75 value "2" onClickGoto :NUM
+	f.writeAs "3" atX 175 y 170 width 75 height 75 value "3" onClickGoto :NUM
+
+	f.writeAs "4" atX 15 y 250 width 75 height 75 value "4" onClickGoto :NUM
+	f.writeAs "5" atX 95 y 250 width 75 height 75 value "5" onClickGoto :NUM
+	f.writeAs "6" atX 175 y 250 width 75 height 75 value "6" onClickGoto :NUM
+
+	f.writeAs "7" atX 15 y 330 width 75 height 75 value "7" onClickGoto :NUM
+	f.writeAs "8" atX 95 y 330 width 75 height 75 value "8" onClickGoto :NUM
+	f.writeAs "9" atX 175 y 330 width 75 height 75 value "9" onClickGoto :NUM
+
+	f.writeAs "0" atX 15 y 410 width 75 height 75 value "0" onClickGoto :NUM
+	f.writeAs "age" atX 95 y 410 width 155 height 75 value "Age" onClickGoto :CALC_AGE
+	
+	f.writeAs "today" atX 260 y 170 width 230 height 73 value "Today" onClickGoto :TODAY
+	f.writeAs "w7" atX 260 y 250 width 230 height 73 value "1 Week Ago" onClickGoto :WEEK_AGO
+	f.writeAs "w14" atX 260 y 330 width 230 height 73 value "2 Weeks Ago" onClickGoto :WEEK_AGO
+	f.writeAs "w21" atX 260 y 410 width 230 height 73 value "3 Weeks Ago" onClickGoto :WEEK_AGO
+
+	f.onKey "0" goto :NUM useId "0"
+	f.onKey "1" goto :NUM useId "1"
+	f.onKey "2" goto :NUM useId "2"
+	f.onKey "3" goto :NUM useId "3"
+	f.onKey "4" goto :NUM useId "4"
+	f.onKey "5" goto :NUM useId "5"
+	f.onKey "6" goto :NUM useId "6"
+	f.onKey "7" goto :NUM useId "7"
+	f.onKey "8" goto :NUM useId "8"
+	f.onKey "9" goto :NUM useId "9"
+
+	return
+	
+:NUM
+	NUM = f.getLastActionId
+	ENTRY = join ENTRY & NUM
+	gosub :SHOW_NUM
+	stop
+	
+:CALC_AGE
+	VALUE = decrease CULL_DAY by ENTRY
+	VALUE = join "Age: " & VALUE
+	ENTRY = @ ""
+	gosub :SHOW_NUM
+	gosub :SHOW_VALUE
+	stop
+
+:TODAY
+	VALUE = @ CULL_DAY
+	gosub :SHOW_VALUE
+	stop
+	
+:WEEK_AGO
+	DAYS_OFF = f.getLastActionId
+    DAYS_OFF = cropLeftOffOf DAYS_OFF at 1
+	VALUE = decrease CULL_DAY by DAYS_OFF
+	VALUE = join "-" & DAYS_OFF && ": " &&& VALUE
+	gosub :SHOW_VALUE
+	stop
+	
+	
+:SHOW_NUM
+	f.drawAs "entry_b" atX 10 y 93 id "res.entry"
+	f.writeAs "entry" atX 16 y 99 width 229 height 52 value ENTRY
+	return
+
+:SHOW_VALUE
+	f.drawAs "value_b" atX 255 y 93 id "res.value"
+	f.writeAs "value" atX 261 y 99 width 229 height 52 value VALUE
+	return
+
+	
+:CALC_TODAY	
+	gosub :_SETUP_2015
+	N = platform.getDateSerial
+	Y = cropRightOffOf N at 4
+	N = cropLeftOffOf N at 4
+	M = cropRightOffOf N at 2
+	N = cropLeftOffOf N at 2
+	D = cropRightOffOf N at 2
+	
+	Y2015 = testIf Y is 2015
+	
+	CULL_DAY = getPart M from M_OFFSET
+	CULL_DAY = increase CULL_DAY by D
+	return 
+	
+:_SETUP_2015
+	P = ""
+	P = setPart "01" in P to "0"
+	P = setPart "02" in P to "31"
+	P = setPart "03" in P to "59"
+	P = setPart "04" in P to "90"
+	P = setPart "05" in P to "120"
+	P = setPart "06" in P to "151"
+	P = setPart "07" in P to "181"
+	P = setPart "08" in P to "212"
+	P = setPart "09" in P to "243"
+	P = setPart "10" in P to "273"
+	P = setPart "11" in P to "304"
+	P = setPart "12" in P to "334"
+	M_OFFSET = @ P
+	return

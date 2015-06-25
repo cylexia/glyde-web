@@ -1,0 +1,94 @@
+/* CSS file placeholder. */
+HTML, BODY { 
+  margin: 0; 
+  padding: 0;
+}
+/*
+BODY {
+  border: 2px solid #000;
+}
+*/
+
+DIV#launcher_title {
+  padding: 5px;
+  background: #ddd;
+  margin-bottom: 5px;
+  text-align: center;
+  border-bottom: 2px solid #888;
+}
+
+DIV#launcher_title H1 {
+  margin: 0 0 3px 0;
+  padding: 0;
+}
+
+.launcher_button {
+  background: #cfe;
+  border: 1px solid #6f9;
+  padding: 5px;
+  margin: 5px;
+  font-size: 20px;
+}
+
+DIV#titlebar {
+  background: #aaf;
+  padding: 2px;
+  font-weight: bold;
+}
+
+DIV#launcherview { 
+  overflow: auto; 
+  height: 80%;
+}
+DIV#runtimeview { 
+  width: 100%; 
+  height: 100%; 
+  text-align: center; 
+  overflow: auto;
+  display: none;
+}
+DIV#runtimeview CANVAS { 
+  margin: auto;
+}
+
+DIV#loadview {
+  padding: 20px;
+}
+
+.toolbar {
+  /* vendor specific for app due to no chrome: 
+      (use "no-drag" on buttons etc. inside titlebar) */
+  -webkit-app-region: drag; 
+  background: #ddd;
+  text-align: center;
+  border-bottom: 2px solid #888;  margin: 0 0 3px 0;
+  padding: 8px;
+  position: relative;
+  display: none;
+}
+
+.windowwidgets {
+  position: absolute; 
+  right: 0px;
+  top: 0px;
+  padding: 5px;
+  display: none;
+}
+
+.windowwidget {
+  /* vendor specific due to no chrome in app, if not set no click event gets
+      fired) */
+  -webkit-app-region: no-drag; 
+  padding: 4px;
+}
+
+.tbbackbtn {
+  /* vendor specific due to no chrome in app, if not set no click event gets
+      fired) */
+  -webkit-app-region: no-drag; 
+  padding: 1px 20px 1px 1px;
+}
+
+.tbtitle {
+  font-weight: bold ;
+}

@@ -1,0 +1,45 @@
+f.setTitle "" 
+f.setWidth 400 height 400 backgroundcolour "#ffffff"
+
+f.loadResource "com.cylexia.g.lightswitch/res.map" as "res"
+
+:START
+	f.clear "view"
+	f.drawAs "logo" id "res.logo" x 0 y 0
+	f.drawAs "1" id "res.button" x 0 y 70 onClickGoto :SWITCH
+	f.writeAs "1l" value "Main" x 100 y 95
+
+	f.drawAs "2" id "res.button" x 0 y 140 onClickGoto :SWITCH
+	f.writeAs "2l" value "PC" x 100 y 165
+
+	f.drawAs "3" id "res.button" x 0 y 210 onClickGoto :SWITCH
+	f.writeAs "3l" value "Bed" x 100 y 235
+
+	f.drawAs "alloff" id "res.button" x 0 y 280 onClickGoto :ALL_OFF
+	f.writeAs "alloffl" value "All Off" x 100 y 305
+
+	stop
+
+:SWITCH
+	f.drawAs "wait" id "res.wait" x 175 y 175
+	C = f.getLastActionId
+	A = join URL & "?c=" && C &&& " -o com.cylexia.g.lightswitch/log.txt"
+	platform.exec "wget" withArgs A onDoneGoto :START onErrorGoto :ERROR
+#	A = join URL & "?c=" && C
+#	platform.exec "browse" withArgs A onDoneGoto :START onErrorGoto :ERROR
+	stop
+
+:ALL_OFF
+	f.drawAs "wait" id "res.wait" x 175 y 175
+	A = join URL & "?a=off -o com.cylexia.g.lightswitch/log.txt"
+	platform.exec "wget" withArgs A onDoneGoto :START onErrorGoto :ERROR
+#	A = join URL & "?a=off"
+#	platform.exec "browse" withArgs A onDoneGoto :START onErrorGoto :ERROR
+	stop
+
+:ERROR
+	f.clear "view"
+	f.drawAs "logo" id "res.logo" x 0 y 0
+	f.writeAs "err" value "Failed to perform operation" x 5 y 60
+	f.writeAs "back" value="Back" x 10 y 80 width 280 height 40 border "#000000" onClickGoto :START
+	stop
