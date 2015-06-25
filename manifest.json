@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+  "name": "Glyde/Web",
+  "description": "Glyde Runtime for Web",
+  "version": "0.9",
+  "icons": {
+      "128": "assets/glyde128.png",
+      "16": "assets/glyde16.png"
+    },
+  "app": {
+    "urls": [
+        "http://localhost/glyde-web/glydert.html"
+      ],
+    "launch": {
+        "web_url": "http://localhost/glyde-web/glydert.html"
+      }
+    },
+  "permissions": [
+    "http://*/"
+  ]
+}
