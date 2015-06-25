@@ -21,7 +21,7 @@ var Glyde = {
         // first, we'll load all the scripts we need for "platform.exec"
         Glyde._run_app = Dict.valueOf( fs, "run" );
         var root = Dict.valueOf( fs, "root", "" );
-        var i, item, rows;
+        var i, item, rows, path_src, path_dest, pi;
         var head = document.getElementsByTagName( "head" )[0];
         for( rows = Utils.split( Dict.valueOf( fs, "script" ), "\n" ), i = 0; i < rows.length; i++ ) {
           item = document.createElement( "script" );
@@ -34,30 +34,42 @@ var Glyde = {
         var body = document.getElementsByTagName( "body" );
         for( rows = Utils.split( Dict.valueOf( fs, "image" ), "\n" ), i = 0; i < rows.length; i++ ) {
           var img = document.createElement( "img" );
-          if( rows[i].indexOf( "://" ) == -1 ) {
-            img.src = (root + rows[i]);
+          if( (pi = rows[i].indexOf( ">" )) > -1 ) {
+            path_src = rows[i].substr( 0, pi ).trim();
+            path_dest = rows[i].substr( (pi + 1) ).trim();
           } else {
-            img.src = rows[i];
+            path_src = path_dest = rows[i];
           }
-		      img["gluefilesystem.id"] = rows[i];
+          if( path_src.indexOf( "://" ) == -1 ) {
+            img.src = (root + path_src);
+          } else {
+            img.src = path_src;
+          }
+		      img["gluefilesystem.id"] = path_dest;
 		      img.style["display"] = "none";
           document.getElementsByTagName( "body" )[0].appendChild( img );
         }
         
 		    // and finally, the text files
         for( rows = Utils.split( Dict.valueOf( fs, "text" ), "\n" ), i = 0; i < rows.length; i++ ) {
+          if( (pi = rows[i].indexOf( ">" )) > -1 ) {
+            path_src = rows[i].substr( 0, pi ).trim();
+            path_dest = rows[i].substr( (pi + 1) ).trim();
+          } else {
+            path_src = path_dest = rows[i];
+          }
           var ta = document.createElement( "textarea" );
-    		  ta["gluefilesystem.id"] = rows[i];
+    		  ta["gluefilesystem.id"] = path_dest;
     		  ta["glyde.complete"] = false;
     		  ta.style["display"] = "none";
           document.getElementsByTagName( "body" )[0].appendChild( ta );
 		      var xhr = new XMLHttpRequest();
           xhr["glyde.textarea"] = ta;
     			xhr.onreadystatechange = Glyde._setTextAreaFromXHR;
-    			xhr.open( "GET", (root + rows[i]), true );
+    			xhr.open( "GET", (root + path_src), true );
     			xhr.send();
         }
-		    console.log( "Starting wait" );
+console.log( "Waiting for resources..." );
         Glyde._checker_interval_id = window.setInterval( Glyde._checkLoaded, 250 ); 
       }
     }
@@ -114,7 +126,7 @@ var Glyde = {
   	}
     // everythings loaded!
     window.clearInterval( Glyde._checker_interval_id );
-    console.log( "Launching app: " + Glyde._run_app );
+console.log( "Loaded everything, launching app: " + Glyde._run_app );
     GlydeRT.runApp( Glyde._run_app );
   },
   
