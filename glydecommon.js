@@ -1,13 +1,13 @@
 var Glyde = {
   // utilties class
   
-  _needed_objects: null,
   _checker_interval_id: null,
+  _checker_timeout: 0,
+  _run_app: "",
   
   startApp: function() {
     // we look for a file called "fs.glyde" in this folder to load and parse
     var xhr = new XMLHttpRequest();
-console.log( "issuing request for file" );
     xhr.onreadystatechange = Glyde._startWithFS;
     xhr.open( "GET", "fs.glyde", true );
     xhr.send();
@@ -19,6 +19,7 @@ console.log( "issuing request for file" );
       if( this.status == 200 ) {
         var fs = Utils.parseSimpleConfig( this.responseText );
         // first, we'll load all the scripts we need for "platform.exec"
+        Glyde._run_app = Dict.valueOf( fs, "run" );
         var root = Dict.valueOf( fs, "root", "" );
         var i, item, rows;
         var head = document.getElementsByTagName( "head" )[0];
@@ -39,6 +40,7 @@ console.log( "issuing request for file" );
             img.src = rows[i];
           }
 		      img["gluefilesystem.id"] = rows[i];
+		      img.style["display"] = "none";
           document.getElementsByTagName( "body" )[0].appendChild( img );
         }
         
@@ -47,6 +49,7 @@ console.log( "issuing request for file" );
           var ta = document.createElement( "textarea" );
     		  ta["gluefilesystem.id"] = rows[i];
     		  ta["glyde.complete"] = false;
+    		  ta.style["display"] = "none";
           document.getElementsByTagName( "body" )[0].appendChild( ta );
 		      var xhr = new XMLHttpRequest();
           xhr["glyde.textarea"] = ta;
@@ -54,7 +57,7 @@ console.log( "issuing request for file" );
     			xhr.open( "GET", (root + rows[i]), true );
     			xhr.send();
         }
-		
+		    console.log( "Starting wait" );
         Glyde._checker_interval_id = window.setInterval( Glyde._checkLoaded, 250 ); 
       }
     }
@@ -65,76 +68,58 @@ console.log( "issuing request for file" );
     if( this.readyState == 4 ) {    // OK
       if( this.status == 200 ) {
         var ta = this["glyde.textarea"];
-		ta.value = this.responseText;
-		ta["glyde.complete"] = true;
+		    ta.value = this.responseText;
+		    ta["glyde.complete"] = true;
       } else {
         window.clearInterval( Glyde._checker_interval_id );
-		console.log( "failed to load text, load will never complete" );
-		// TODO: call something to notify of the error
+        window.alert( "Unable to load resource, try refreshing the page?" );
       }
     }
   },
   
   _checkLoaded: function() {
+    // have we been going for 10 seconds?
+    if( Glyde._checker_timeout++ == 40 ) {
+      window.clearInterval( Glyde._checker_interval_id );
+      window.alert( "Loading is taking too long, try refreshing the page?" );
+    }
 	  // Check to see if text files have loaded
+	  var i;
     var tas = document.getElementsByTagName( "textarea" );
-    for( var i = 0; i < tas.length; i++ ) {
+    for( i = 0; i < tas.length; i++ ) {
       if( !tas[i]["glyde.complete"] ) {
-        console.log( "textarea " + i + " isn't complete yet" + Math.random() );
+        //console.log( "textarea " + i + " isn't complete yet" + Math.random() );
         return;
       }
     }
     
    // check if the images are all loaded
     var imgs = document.getElementsByTagName( "img" );
-    for( var i = 0; i < imgs.length; i++ ) {
+    for( i = 0; i < imgs.length; i++ ) {
       if( !imgs[i].complete ) {
-        console.log( "image " + i + " isn't complete yet" + Math.random() );
+        //console.log( "image " + i + " isn't complete yet" + Math.random() );
         return;
       }
     }
-
-	// check if the exec apps have registered
-	var scripts = document.getElementsByTagName( "script" );
-	for( var i = 0; i < scripts.length; i++ ) {
-		if( scripts["glyde.exec_app_src"] ) {
-			if( !GluePlatform.isExecAppAvailable( scripts["glyde.exec_app_src"] ) ) {
-				console.log( "exec app " + i + " is not loaded" + Math.random() );
-				return false;
-			}
-		}
-	}
+  
+  	// check if the exec apps have registered
+  	var scripts = document.getElementsByTagName( "script" );
+  	for( i = 0; i < scripts.length; i++ ) {
+  		if( scripts["glyde.exec_app_src"] ) {
+  			if( !GluePlatform.isExecAppAvailable( scripts["glyde.exec_app_src"] ) ) {
+  				//console.log( "exec app " + i + " is not loaded" + Math.random() );
+  				return false;
+  			}
+  		}
+  	}
     // everythings loaded!
     window.clearInterval( Glyde._checker_interval_id );
-    console.log( "we have everything we want" );
+    console.log( "Launching app: " + Glyde._run_app );
+    GlydeRT.runApp( Glyde._run_app );
   },
   
   
-  _loadNextFile: function( a_files ) {
-console.log( "_loadNextFile" );
-    if( this["glyde.files"] ) {
-      a_files = this["glyde.files"];
-    }
-    if( a_files.length === 0 ) {
-console.log( "no more images" );
-      return;
-      // TODO: call the next function as load is done
-    }
-    var file = a_files.pop();
-    switch( file["type"] ) {
-      case "image":
-console.log( "image: " + file["source"] + " -> " + file["dest"] );
-        item = document.createElement( "img" );
-        item["glyde.files"] = a_files;
-        item.src = "";
-        item.addEventListener( "load", FS._loadNextFile, false );
-        item.src = file["source"] + "?" + Math.random();
-        //item.style["display"] = "none";
-        document.getElementsByTagName( "body" )[0].appendChild( item );
-        break;
-    }
-  },
-  
+
   App: {
     create: function( s_file, s_src ) {
       if( !s_src ) {

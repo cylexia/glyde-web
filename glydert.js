@@ -13,49 +13,9 @@ var GlydeRT = {
 			
 		start: function() { "use strict";
 		  Glyde.startApp();
-		  return;
-		  
-		  // since we're doing our own widgets we need to make them work
-		  var idx = 0, w;
-		  while( (w = _.e( ("widget_close" + idx) )) ) {
-        w.addEventListener( "click", GlydeRT._closeWindow, false );
-	      _.e( ("widget_minimise" + idx) ).addEventListener( "click", GlydeRT._minimiseWindow, false );
-        idx++;
-      }
-		  // we need the config, load it and pass on to next method
-		  // TODO: a "loading" box?
-      var xhr = new XMLHttpRequest();
-      xhr.onreadystatechange = GlydeRT.startWithConfig;
-      xhr.open( "GET", chrome.runtime.getURL( "config.dat" ), true );
-      xhr.send();
     },
-  
-  	startWithConfig: function() {
-      // "this" will be the request
-      if( this.readyState == 4 ) {    // OK
-        if( this.status == 200 ) {
-          var config = Utils.loadSimpleConfig( this.responseText );
-          var app = document.location.hash.substr( 1 );
-          var download = [], i;
-          var scripts = Utils.split( Dict.valueOf( config, "script" ), "\n" );
-          for( i = 0; i < scripts.length; i++ ) {
-            download.push( ("script=" + scripts[i] + ";") );
-          }
-          download.push( ("text=" + app + ".app;") );
-          var files = Utils.split( Dict.valueOf( config, app ), "\n" );
-          for( i = 0; i < files.length; i++ ) {
-            download.push( (files[i] + ";") );
-          }
-          // load the file list and pass control to the next stage
-          FS.init( "/fs/" );
-          FS.loadFileSystemFromString( download.join( "\n" ), GlydeRT.startWithFileSystem );
-        } else {
-          // TODO: show an error page
-        }
-      }
-  	},
-		
-    startWithFileSystem: function() {
+
+	  runApp: function( s_appfile ) {
 			GlydeRT.canvas = document.getElementById( "content" );
 			GlydeRT.canvas.addEventListener( "click", GlydeRT._clickHandler, false );
 
@@ -64,18 +24,6 @@ var GlydeRT = {
 			
 			Glue.attachPlugin( GlydeRT.glue, ExtGlyde );
 			
-			GlydeRT.runApp( (document.location.hash.substr( 1 ) + ".app") );
-			//var b = document.createElement( "button" );
-			//b.appendChild( document.createTextNode( "start" ) );
-			//b.addEventListener( "click", GlydeRT.runApp0 );
-			//document.getElementsByTagName( "body" )[0].appendChild( b );
-		},
-
-    runApp0: function() {
-      GlydeRT.runApp( (document.location.hash.substr( 1 ) + ".app") );
-    },
-
-	  runApp: function( s_appfile ) {
       // reset the title of the runtime toolbar
 			var tb_title = _.e( "tb_title" );
 		  tb_title.removeChild( tb_title.childNodes[0] );
