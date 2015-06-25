@@ -12,7 +12,4 @@ var BrowseExe = {
   }
 };
     
-GluePlatform.setExecApp( "browse", BrowseExe );
-if( FS ) {
-  FS.notifyLoaded( "browse.exe.js" );
-}
+GluePlatform.setExecApp( "browse.js.exe", "browse", BrowseExe );

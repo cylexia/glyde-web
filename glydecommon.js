@@ -19,15 +19,17 @@ console.log( "issuing request for file" );
       if( this.status == 200 ) {
         var fs = Utils.parseSimpleConfig( this.responseText );
         // first, we'll load all the scripts we need for "platform.exec"
+        var root = Dict.valueOf( fs, "root", "" );
         var i, item, rows;
         var head = document.getElementsByTagName( "head" )[0];
         for( rows = Utils.split( Dict.valueOf( fs, "script" ), "\n" ), i = 0; i < rows.length; i++ ) {
           item = document.createElement( "script" );
-          item.src = rows[i];
-   //       head.appendChild( item );
+	        item["glyde.exec_app_src"] = rows[i];
+          item.src = (root + rows[i]);
+          head.appendChild( item );
         }
+        
         // next, we'll add the images
-        var root = Dict.valueOf( fs, "root", "" );
         var body = document.getElementsByTagName( "body" );
         for( rows = Utils.split( Dict.valueOf( fs, "image" ), "\n" ), i = 0; i < rows.length; i++ ) {
           var img = document.createElement( "img" );
@@ -36,23 +38,24 @@ console.log( "issuing request for file" );
           } else {
             img.src = rows[i];
           }
-		  img["gluefilesystem.id"] = rows[i];
+		      img["gluefilesystem.id"] = rows[i];
           document.getElementsByTagName( "body" )[0].appendChild( img );
         }
-		// and finally, the text files
+        
+		    // and finally, the text files
         for( rows = Utils.split( Dict.valueOf( fs, "text" ), "\n" ), i = 0; i < rows.length; i++ ) {
           var ta = document.createElement( "textarea" );
-		  ta["gluefilesystem.id"] = rows[i];
-		  ta["glyde.complete"] = false;
+    		  ta["gluefilesystem.id"] = rows[i];
+    		  ta["glyde.complete"] = false;
           document.getElementsByTagName( "body" )[0].appendChild( ta );
-		  var xhr = new XMLHttpRequest();
+		      var xhr = new XMLHttpRequest();
           xhr["glyde.textarea"] = ta;
-			xhr.onreadystatechange = Glyde._setTextAreaFromXHR;
-			xhr.open( "GET", (root + rows[i]), true );
-			xhr.send();
+    			xhr.onreadystatechange = Glyde._setTextAreaFromXHR;
+    			xhr.open( "GET", (root + rows[i]), true );
+    			xhr.send();
         }
 		
-        Glyde._checker_interval_id = window.setInterval( Glyde._checkLoaded, 10 ); 
+        Glyde._checker_interval_id = window.setInterval( Glyde._checkLoaded, 250 ); 
       }
     }
   },
@@ -73,7 +76,8 @@ console.log( "issuing request for file" );
   },
   
   _checkLoaded: function() {
-     var tas = document.getElementsByTagName( "textarea" );
+	  // Check to see if text files have loaded
+    var tas = document.getElementsByTagName( "textarea" );
     for( var i = 0; i < tas.length; i++ ) {
       if( !tas[i]["glyde.complete"] ) {
         console.log( "textarea " + i + " isn't complete yet" + Math.random() );
@@ -90,6 +94,16 @@ console.log( "issuing request for file" );
       }
     }
 
+	// check if the exec apps have registered
+	var scripts = document.getElementsByTagName( "script" );
+	for( var i = 0; i < scripts.length; i++ ) {
+		if( scripts["glyde.exec_app_src"] ) {
+			if( !GluePlatform.isExecAppAvailable( scripts["glyde.exec_app_src"] ) ) {
+				console.log( "exec app " + i + " is not loaded" + Math.random() );
+				return false;
+			}
+		}
+	}
     // everythings loaded!
     window.clearInterval( Glyde._checker_interval_id );
     console.log( "we have everything we want" );

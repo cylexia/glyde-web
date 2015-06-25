@@ -38,7 +38,4 @@ var WgetExe = {
   }
 };
   
-GluePlatform.setExecApp( "wget", WgetExe );
-if( FS ) {
-  FS.notifyLoaded( "wget.exe.js" );
-}
+GluePlatform.setExecApp( "wget.exe.js", "wget", WgetExe );
