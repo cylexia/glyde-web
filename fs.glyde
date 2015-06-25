@@ -1,0 +1,30 @@
+# Glyde Filesystem definition                                               ;
+
+root=fs/;
+
+# External applications/scripts                                             ;
+script=browse.exe.js;
+script=ui.exe.js;
+script=wget.exe.js;
+
+# Text Files                                                                ;
+text=com.cylexia.g.lightswitch/main.script;
+text=com.cylexia.g.lightswitch/res.map;
+text=srh_dno/main.map;
+text=srh_dno/main.script;
+text=com_test_ui.app;
+text=com.test.ui/main.script;
+text=com.cylexia.g.lightswitch.app;
+text=com_test_ui.app;
+text=srh_dno.app;
+
+# Images                                                                    ;
+image=com.cylexia.g.lightswitch;
+image=com.cylexia.g.lightswitch/icon.png;
+image=com.cylexia.g.lightswitch/map.png;
+image=srh_dno/back.png > srh_dno/back.bmp;
+image=srh_dno/icon.png;
+image=http://www.theplace2.ru/archive/ali_larter/img/alil200615bznimage015.jpg;
+
+# App name to start when using this definition                              ;
+run=com.cylexia.g.lightswitch.app;

@@ -12,6 +12,9 @@ var GlydeRT = {
 		},
 			
 		start: function() { "use strict";
+		  Glyde.startApp();
+		  return;
+		  
 		  // since we're doing our own widgets we need to make them work
 		  var idx = 0, w;
 		  while( (w = _.e( ("widget_close" + idx) )) ) {
