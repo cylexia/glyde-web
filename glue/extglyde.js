@@ -338,68 +338,12 @@ var ExtGlyde = {
 	// TODO: this should use a rect and alignment options along with colour support
 	writeAs: function( s_id, d_args ) {
 	  "use strict";
-		ExtGlyde.updateFromStyle( d_args );
-		var text = Dict.valueOf( d_args, "value" );
-		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var x = ExtGlyde.Rect.getLeft( rect );
-		var y = ExtGlyde.Rect.getTop( rect );
-		var rw = ExtGlyde.Rect.getWidth( rect );
-		var rh = ExtGlyde.Rect.getHeight( rect );
-		var size = Dict.intValueOf( d_args, "size", 2 );
-		var thickness = Dict.intValueOf( d_args, "thickness", 1 );
-		var tw = (VecText.getGlyphWidth( size, thickness ) * text.length);
-		var th = VecText.getGlyphHeight( size, thickness );
-		var tx, ty;
-		if( rw > 0 ) {
-			var align = Dict.valueOf( d_args, "align", "2" );
-			if( (align == "2") || (align == "centre") ) {
-				tx = (x + ((rw - tw) / 2));
-			} else if( (align == "1" ) || (align == "right") ) {
-				tx = (x + (rw - tw));
-			} else {
-				tx = x;
-			}
-		} else {
-			rw = tw;
-			tx = x;
-		}
-		if( rh > 0 ) {
-			ty = (y + ((rh - th) / 2));
-		} else {
-			rh = th;
-			ty = y;
-		}
-		VecText.drawString( ExtGlyde.getBitmap(), text, Dict.valueOf( d_args, "colour", "#000" ), tx, ty, size, thickness, (thickness + 1) );
-		rect = ExtGlyde.Rect.create( x, y, rw, rh );    // Dict: ExtGlyde.Rect
-		return ExtGlyde.buttonise( s_id, rect, d_args );
+		Dict.set( d_args, "textcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+		return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 
 	drawAs: function( s_id, d_args ) {
-		ExtGlyde.updateFromStyle( d_args );
-		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var rid = Dict.valueOf( d_args, "id", Dict.valueOf( d_args, "resource" ) );
-		if( ExtGlyde.resources !== null ) {
-			var b = rid.indexOf( '.' );
-			if( b > -1 ) {
-				var resid = rid.substring( 0, b );
-				var imgid = rid.substring( (b + 1) );
-				var keys = Dict.keys( ExtGlyde.resources );
-				for( var i = 0; i < keys.length; i++ ) {
-				  var imgmap = Dict.valueOf( ExtGlyde.resources, keys[i] );    // imgmap: ExtGlyde.ImageMap
-				  var x = ExtGlyde.Rect.getLeft( rect );
-				  var y = ExtGlyde.Rect.getTop( rect );
-					if( ExtGlyde.ImageMap.drawToCanvas( imgmap, imgid, ExtGlyde.getBitmap(), x, y ) ) {
-						var maprect = ExtGlyde.ImageMap.getRectWithId( imgmap, imgid );
-						var imgrect = ExtGlyde.Rect.create(
-						    x, y,
-						    ExtGlyde.Rect.getWidth( maprect ), ExtGlyde.Rect.getHeight( maprect )
-						  );
-						return ExtGlyde.buttonise( s_id, imgrect, d_args );
-					}
-				}
-			}
-		}
-		return false;
+		return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 
 	markAs: function( s_id, d_args ) {
@@ -412,14 +356,11 @@ var ExtGlyde = {
 	},
 
 	paintRectAs: function( s_id, d_args, b_filled ) {
-		ExtGlyde.updateFromStyle( d_args );
-		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var d = Dict.create();
-  	Dict.set( d, "rect", rect );
-    Dict.set( d, "colour", Dict.valueOf( d_args, "colour", "#000" ) );
-		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, b_filled );
-		
-		return ExtGlyde.buttonise( s_id, rect, d_args );
+	  Dict.set( d_args, "linecolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	  if( b_filled ) {
+	    Dict.set( d_args, "fillcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	  }
+	  return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 	
 	createEntityAs: function( s_id, d_args ) {
@@ -427,29 +368,18 @@ var ExtGlyde = {
 		    value       text        the text value
 		    size        text
 		    thickness   text
-		    colour      text        text colour
+		    textcolour  text        text colour
 		    linecolour  rect        the border colour
-		    fillcolour  paintfilled the fill colour
+		    fillcolour  filledrect  the fill colour
 		    align       text        text alignment
 		*/
-		
-		// filled rect first, then empty rect, resource and text
+
 		ExtGlyde.updateFromStyle( d_args );
 		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var d, x, y;
-		if( Dict.containsKey( d_args, "fillcolour" ) ) {
-  		d = Dict.create();
-    	Dict.set( d, "rect", rect );
-      Dict.set( d, "colour", Dict.valueOf( d_args, "fillcolour", "#000" ) );
-  		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, true );
-		}
-		if( Dict.containsKey( d_args, "linecolour" ) ) {)
-  		d = Dict.create();
-    	Dict.set( d, "rect", rect );
-      Dict.set( d, "colour", Dict.valueOf( d_args, "linecolour", "#000" ) );
-  		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, false );
-		}
 
+		// if we're given an ID or RESOURCE value, the width and height values will be replaced
+		//  with those of the resource
+	  var resource = null, resid, imgid;
     if( Dict.containsKey( d_args, "id" ) || Dict.containsKey( d_args, "resource" ) ) {
   		var rid = Dict.valueOf( d_args, "id", Dict.valueOf( d_args, "resource" ) );
 	  	if( ExtGlyde.resources == null ) {
@@ -457,47 +387,55 @@ var ExtGlyde = {
 	  	}
 			var b = rid.indexOf( '.' );
 			if( b > -1 ) {
-				var resid = rid.substring( 0, b );
-				var imgid = rid.substring( (b + 1) );
-				var keys = Dict.keys( ExtGlyde.resources );
+				resid = rid.substring( 0, b );
+				imgid = rid.substring( (b + 1) );
 				if( Dict.containsKey( ExtGlyde.resources, resid ) ) {
-				  var imgmap = Dict.valueOf( ExtGlyde.resources, resid );    // imgmap: ExtGlyde.ImageMap
-				  var resrect = ExtGlyde.ImageMap.getRectWithId( imgmap, imgid );
-				  var reswidth = ExtGlyde.Rect.getWidth( resrect );
-				  var resheight = ExtGlyde.Rect.getHeight( resrect );
-				  x = ExtGlyde._align( ExtGlyde.Rect.getWidth( maprect ) ExtGlyde.Rect.getLeft( rect );
-				  y = ExtGlyde.Rect.getTop( rect );
-					if( ExtGlyde.ImageMap.drawToCanvas( imgmap, imgid, ExtGlyde.getBitmap(), x, y ) ) {
-						
-						rect = ExtGlyde.Rect.create(
-						    x, y,
-						    ExtGlyde.Rect.getWidth( maprect ), ExtGlyde.Rect.getHeight( maprect )
-						  );
-					  
-					  Glue._error( "[Glyde] Unable to draw resource" );
-					  return false;
-					}
-				} else {
-				  Glue._error( ("[Glyde] No such resource: " + rid) );
-				  return false;
-				}
-			} else {
-			  Glue._error( ("[Glyde] Invalid resource: " + rid) );
+				  resource = Dict.valueOf( ExtGlyde.resources, resid );    // imgmap: ExtGlyde.ImageMap
+				  var resrect = ExtGlyde.ImageMap.getRectWithId( resource, imgid );
+          rect = ExtGlyde.Rect.create(
+		          ExtGlyde.Rect.getLeft( rect ),
+		          ExtGlyde.Rect.getTop( rect ),
+		          ExtGlyde.Rect.getWidth( resrect ),
+		          ExtGlyde.Rect.getHeight( resrect )
+		        );
+  			} else {
+	  		  Glue._error( ("[Glyde] No such resource: " + resid) );
+		  	  return false;
+			  }
+		  } else {
+		    Glue._error( ("[Glyde] Invalid resource: " + rid) );
+		    return false;
+		  }
+    }
+
+		// filled rect first, then empty rect, resource and text
+		var d, x, y;
+		if( Dict.containsKey( d_args, "fillcolour" ) ) {
+  		d = Dict.create();
+    	Dict.set( d, "rect", rect );
+      Dict.set( d, "colour", Dict.valueOf( d_args, "fillcolour", "#000" ) );
+  		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, true );
+		}
+		if( Dict.containsKey( d_args, "linecolour" ) ) {
+  		d = Dict.create();
+    	Dict.set( d, "rect", rect );
+      Dict.set( d, "colour", Dict.valueOf( d_args, "linecolour", "#000" ) );
+  		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, false );
+		}
+
+    if( resource !== null ) {
+		  x = ExtGlyde.Rect.getLeft( rect );
+		  y = ExtGlyde.Rect.getTop( rect );
+			if( !ExtGlyde.ImageMap.drawToCanvas( resource, imgid, ExtGlyde.getBitmap(), x, y ) ) {
+			  Glue._error( "[Glyde] Unable to draw resource" );
 			  return false;
 			}
-			
-    }
-						return ExtGlyde.buttonise( s_id, imgrect, d_args );
-					}
-				}
-			}
-		}
     }
 		
 		var text = Dict.valueOf( d_args, "value" );
 		if( text && (text.length > 0) ) {
-  		var x = ExtGlyde.Rect.getLeft( rect );
-  		var y = ExtGlyde.Rect.getTop( rect );
+  		x = ExtGlyde.Rect.getLeft( rect );
+  		y = ExtGlyde.Rect.getTop( rect );
   		var rw = ExtGlyde.Rect.getWidth( rect );
   		var rh = ExtGlyde.Rect.getHeight( rect );
   		var size = Dict.intValueOf( d_args, "size", 2 );
@@ -524,22 +462,14 @@ var ExtGlyde = {
   			rh = th;
   			ty = y;
   		}
-  		VecText.drawString( ExtGlyde.getBitmap(), text, Dict.valueOf( d_args, "colour", "#000" ), tx, ty, size, thickness, (thickness + 1) );
+  		VecText.drawString( ExtGlyde.getBitmap(), text, Dict.valueOf( d_args, "textcolour", "#000" ), tx, ty, size, thickness, (thickness + 1) );
+  		// if w/h were 0 then replace with the text w/h
+  		rect = ExtGlyde.Rect.create( x, y, rw, rh );    // Dict: ExtGlyde.Rect
 		}
-		rect = ExtGlyde.Rect.create( x, y, rw, rh );    // Dict: ExtGlyde.Rect
 		return ExtGlyde.buttonise( s_id, rect, d_args );
-	
-		return false;
-
-		ExtGlyde.updateFromStyle( d_args );
-		return ExtGlyde.buttonise(
-				s_id,
-				ExtGlyde.Rect.createFromCommandArgs( d_args ),
-				m_args
-			);
 	},
 	
-	_align: function( i_size, i_xy, i_wh, i_align ) {
+	_align: function( i_xy, i_wh, i_align, i_size ) {
 	  switch( i_align ) {
 	    case 0:     // left
 	      return i_xy;
@@ -547,7 +477,8 @@ var ExtGlyde = {
         return (i_xy + (i_wh - i_size));
       case 2:     // center
         return (i_xy + ((i_wh - i_size) / 2));
-	  },
+	  }
+	 },
 
 	buttonise: function( s_id, d_rect, d_args ) {
 	  "use strict";

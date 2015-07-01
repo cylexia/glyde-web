@@ -27,5 +27,5 @@ image=srh_dno/icon.png;
 image=http://www.theplace2.ru/archive/ali_larter/img/alil200615bznimage015.jpg;
 
 # App name to start when using this definition                              ;
-#run=com.cylexia.g.lightswitch.app;
-run=srh_dno.app;
+run=com.cylexia.g.lightswitch.app;
+#run=srh_dno.app;
