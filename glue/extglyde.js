@@ -135,8 +135,9 @@ var ExtGlyde = {
 	glueCommand: function( glue, w, vars ) {
 		var cmd = Dict.valueOf( w, "_" );
 		if( cmd && cmd.startsWith( "f." ) ) {
-		  var wc = Dict.valueOf( w, cmd );
+		  c = cmd
 			cmd = cmd.substring( 2 );
+		  var wc = Dict.valueOf( w, c );
 			if( (cmd == "setwidth") || (cmd == "setviewwidth") ) {
 				return ExtGlyde.setupView( w );
 			} else if( cmd == "settitle" ) {
@@ -171,12 +172,13 @@ var ExtGlyde = {
 				Dict.set( ke, "id", Dict.valueOf( w, "useid" ) );
 				Dict.set( ExtGlyde.keys, wc, ke );
 
-			} else if( cmd == "starttimer" ) {
-			  ExtGlyde._startTimer( glue, wc, Dict.intValueOf( w, "interval" ), Dict.valueOf( w, "ontickgoto" ) );
+			} else if( cmd == "starttimerwithinterval" ) {
+			  // only one timer is supported
+			  ExtGlyde._startTimer( glue, "timer", Dict.intValueOf( w, c ), Dict.valueOf( w, "ontickgoto" ) );
 			} else if( cmd == "stoptimer" ) {
-			  ExtGlyde._stopTimer( wc );
-			} else if( cmd == "stopalltimers" ) {
-			  ExtGlyde._stopTimer( "" );
+			  ExtGlyde._stopTimer( "timer" );
+			//} else if( cmd == "stopalltimers" ) {
+			//  ExtGlyde._stopTimer( "" );
 
 			} else if( cmd == "drawas" ) {
 				ExtGlyde.drawAs( wc, w );
@@ -195,7 +197,7 @@ var ExtGlyde = {
 				return ExtGlyde.paintRectAs( wc, w, true );
 
 			} else if( cmd == "exit" ) {
-			  if( chrome && chrome.app ) {
+			  if( chrome && chrome.app && chrome.app.window ) {
 			    chrome.app.window.current().close();
 			  } else if( window ) {
 			    window.close();
@@ -305,7 +307,7 @@ var ExtGlyde = {
 		  window.title = wc;
 		  document.title = wc;
 		}
-		_.e( "windowtitlebar" ).style["display"] = (wc ? "block" : "none");
+		_.e( "windowtitlebar" ).style.display = "none";// (wc ? "block" : "none");
 		return 1;
   },
 
@@ -338,11 +340,15 @@ var ExtGlyde = {
 	// TODO: this should use a rect and alignment options along with colour support
 	writeAs: function( s_id, d_args ) {
 	  "use strict";
-		Dict.set( d_args, "textcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+		ExtGlyde.updateFromStyle( d_args );
+	  if( !Dict.containsKey( d_args, "textcolour" ) ) {
+		  Dict.set( d_args, "textcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	  }
 		return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 
 	drawAs: function( s_id, d_args ) {
+		ExtGlyde.updateFromStyle( d_args );
 		return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 
@@ -356,9 +362,14 @@ var ExtGlyde = {
 	},
 
 	paintRectAs: function( s_id, d_args, b_filled ) {
-	  Dict.set( d_args, "linecolour", Dict.valueOf( d_args, "colour", "#000" ) );
+		ExtGlyde.updateFromStyle( d_args );
+	  if( !Dict.containsKey( d_args, "linecolour" ) ) {
+	    Dict.set( d_args, "linecolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	  }
 	  if( b_filled ) {
-	    Dict.set( d_args, "fillcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	    if( !Dict.containsKey( d_args, "fillcolour" ) ) {
+	      Dict.set( d_args, "fillcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	    }
 	  }
 	  return ExtGlyde.createEntityAs( s_id, d_args );
 	},
@@ -374,7 +385,6 @@ var ExtGlyde = {
 		    align       text        text alignment
 		*/
 
-		ExtGlyde.updateFromStyle( d_args );
 		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
 
 		// if we're given an ID or RESOURCE value, the width and height values will be replaced
@@ -514,7 +524,7 @@ var ExtGlyde = {
 			return;
 		}
 		if( Dict.containsKey( d_a, "style" ) ) {
-			var style = Dict.valueOf( styles, Dict.valueOf( d_a, "style" ) );
+			var style = Dict.valueOf( ExtGlyde.styles, Dict.valueOf( d_a, "style" ) );
 			var keys = Dict.keys( style );
 			for( var i = 0; i < keys.length; i++ ) {
 				var k = keys[i];
@@ -569,7 +579,7 @@ var ExtGlyde = {
       for( var id in ExtGlyde.timers ) {
         var t = ExtGlyde.timers[id];
         t["count"]--;
-        if( t["count"] === 0 ) {
+        if( t["count"] <= 0 ) {
           t["count"] = t["reset"];
           Glue.run( t["glue"], t["label"] );
         }
