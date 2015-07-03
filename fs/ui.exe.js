@@ -2,7 +2,7 @@
  * Emulate ui.exe to provide user interaction via
  *  ask       - get a value
  *  choose    - choose a value from a list
- * 
+ *
  */
  
 var UiExe = {
@@ -10,7 +10,7 @@ var UiExe = {
   
   /**
    * ui MODE [options]
-   * MODE is "ask", "choose" or "info"
+   * MODE is "ask", "choose" or "tell"
    * options contains
    *    -prompt     The prompt to show
    *    -to         Target file to write to, use "." for STDOUT or "" (or skip) to not
@@ -33,8 +33,8 @@ var UiExe = {
       case "choose":
         UiExe._choose( args, s_done_label, s_error_label );
         break;
-      case "info":
-        UiExe._info( args, s_done_label, s_error_label );
+      case "tell":
+        UiExe._tell( args, s_done_label, s_error_label );
         break;
     }
     
@@ -44,12 +44,12 @@ var UiExe = {
   
   _ask: function( d_data, s_done_label, s_error_label ) {
     var value = (d_data["value"] ? d_data["value"] : "");
-    var field = _.c( 'input', 
-        { "width": "95%" }, 
-        { "type": "text", "size": "40", "text": value } 
+    var field = _.c( 'input',
+        { "width": "95%" },
+        { "type": "text", "size": "40", "text": value }
       );
-    var frame = UiExe._createDialogFrame( 
-        Dict.valueOf( d_data, "prompt" ), 
+    var frame = UiExe._createDialogFrame(
+        Dict.valueOf( d_data, "prompt" ),
         field,
         UiExe._handleAskOK,
         UiExe._handleAskCancel
@@ -65,9 +65,9 @@ var UiExe = {
   
   _choose: function( d_data, s_done_label, s_error_label ) {
     var value = (d_data["value"] ? d_data["value"] : "");
-    var field = _.c( 'select', 
-        { "width": "95%" }, 
-        { "size": "8" } 
+    var field = _.c( 'select',
+        { "width": "95%" },
+        { "size": "8" }
       );
     var items = (d_data["items"] + "/"), s = 0, e, idx = 0;
     while( (e = items.indexOf( "/", s )) > -1 ) {
@@ -82,8 +82,8 @@ var UiExe = {
       field.add( opt );
       idx++;
     }
-    var frame = UiExe._createDialogFrame( 
-        Dict.valueOf( d_data, "prompt" ), 
+    var frame = UiExe._createDialogFrame(
+        Dict.valueOf( d_data, "prompt" ),
         field,
         UiExe._handleChooseOK,
         UiExe._handleChooseCancel
@@ -98,21 +98,21 @@ var UiExe = {
     
   },
 
-  _info: function( d_data, s_done_label, s_error_label ) {
+  _tell: function( d_data, s_done_label, s_error_label ) {
     var field = _.c( 'div' );
-    var lines = (d_data["value"] + "|"), s = 0, e;
-    while( (e = lines.indexOf( "|", s )) > -1 ) {
-      var line = lines.substr( s, (e - s) );
-      s = (e + 1);
+    var lines = (d_data["value"] + "//"), s = 0, e;
+    while( (e = lines.indexOf( "//", s )) > -1 ) {
+      var line = lines.substr( s, (e - s) ).trim();
+      s = (e + 2);
       if( !line ) {
         line = "\u00A0";    // nbsp in unicode
       }
       field.appendChild( _.at( _.c( "div" ), line ) );
     }
-    var frame = UiExe._createDialogFrame( 
-        Dict.valueOf( d_data, "prompt" ), 
+    var frame = UiExe._createDialogFrame(
+        Dict.valueOf( d_data, "prompt" ),
         field,
-        UiExe._handleInfoOK,
+        UiExe._handleTellOK,
         null
       );
     field.addEventListener( "keypress", UiExe._fieldKeyHandler );
@@ -127,12 +127,12 @@ var UiExe = {
   _createDialogFrame: function( s_text, o_innerdiv, f_on_ok, f_on_cancel ) {
     var text = _.c( 'div', { "padding": "5px", "font-weight": "bold" } );
     _.at( text, s_text );
-    var wrap = _.c( 'div', { 
-        "overflow": "auto", 
+    var wrap = _.c( 'div', {
+        "overflow": "auto",
         "text-align": "center"
       } );
     wrap.appendChild( o_innerdiv );
-    var btnstyle = { 
+    var btnstyle = {
           "margin": "2px", "padding": "5px", "background": "#ddd",
           "font-weight": "bold", "border": "1px solid #000", "cursor": "pointer"
       };
@@ -149,7 +149,7 @@ var UiExe = {
       cancel["uiexe.type"] = 2;
       btns.appendChild( cancel );
     }
-    var back = _.c( 'div', { 
+    var back = _.c( 'div', {
         "border": "2px solid #555",
         "margin": "1px",
         "background": "#fff",
@@ -235,7 +235,7 @@ var UiExe = {
       Glue.run( UiExe._glue_instance, frame["uiexe.label.done"] );
   },
   
-  _handleInfoOK: function() {
+  _handleTellOK: function() {
       var frame = this["uiexe.frame"];
       frame.parentNode.removeChild( frame );
       UiExe._saveResult( frame["uiexe.data"], true, 1 );

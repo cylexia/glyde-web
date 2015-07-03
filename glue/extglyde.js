@@ -57,10 +57,10 @@ var ExtGlyde = {
     ExtGlyde.window_height = h;
     ExtGlyde.plane.width = w;//(w + "px");
     ExtGlyde.plane.height = h;//(h + "px");
-    ExtGlyde._drawRect( ExtGlyde.getBitmap(), { 
-        x: 0, y: 0, 
-        width: w, height: h, 
-        colour: ExtGlyde.background_colour 
+    ExtGlyde._drawRect( ExtGlyde.getBitmap(), {
+        x: 0, y: 0,
+        width: w, height: h,
+        colour: ExtGlyde.background_colour
       }, true );
   },
 
@@ -116,8 +116,8 @@ var ExtGlyde = {
 	 * @param g the instance being attached to
 	 */
 	glueAttach: function( f_plugin, f_glue ) {
-    window.addEventListener( "keydown", function( e ) { 
-        ExtGlyde._keyDownHandler( f_glue, (e || window.event) ); 
+    window.addEventListener( "keydown", function( e ) {
+        ExtGlyde._keyDownHandler( f_glue, (e || window.event) );
       } );
     window.addEventListener( "keypress", function( e ) {
         ExtGlyde._keyPressHandler( f_glue, (e || window.event) );
@@ -135,8 +135,9 @@ var ExtGlyde = {
 	glueCommand: function( glue, w, vars ) {
 		var cmd = Dict.valueOf( w, "_" );
 		if( cmd && cmd.startsWith( "f." ) ) {
-		  var wc = Dict.valueOf( w, cmd );
+		  c = cmd
 			cmd = cmd.substring( 2 );
+		  var wc = Dict.valueOf( w, c );
 			if( (cmd == "setwidth") || (cmd == "setviewwidth") ) {
 				return ExtGlyde.setupView( w );
 			} else if( cmd == "settitle" ) {
@@ -171,12 +172,13 @@ var ExtGlyde = {
 				Dict.set( ke, "id", Dict.valueOf( w, "useid" ) );
 				Dict.set( ExtGlyde.keys, wc, ke );
 
-			} else if( cmd == "starttimer" ) {
-			  ExtGlyde._startTimer( glue, wc, Dict.intValueOf( w, "interval" ), Dict.valueOf( w, "ontickgoto" ) );
+			} else if( cmd == "starttimerwithinterval" ) {
+			  // only one timer is supported
+			  ExtGlyde._startTimer( glue, "timer", Dict.intValueOf( w, c ), Dict.valueOf( w, "ontickgoto" ) );
 			} else if( cmd == "stoptimer" ) {
-			  ExtGlyde._stopTimer( wc );
-			} else if( cmd == "stopalltimers" ) {
-			  ExtGlyde._stopTimer( "" );
+			  ExtGlyde._stopTimer( "timer" );
+			//} else if( cmd == "stopalltimers" ) {
+			//  ExtGlyde._stopTimer( "" );
 
 			} else if( cmd == "drawas" ) {
 				ExtGlyde.drawAs( wc, w );
@@ -195,7 +197,7 @@ var ExtGlyde = {
 				return ExtGlyde.paintRectAs( wc, w, true );
 
 			} else if( cmd == "exit" ) {
-			  if( chrome && chrome.app ) {
+			  if( chrome && chrome.app && chrome.app.window ) {
 			    chrome.app.window.current().close();
 			  } else if( window ) {
 			    window.close();
@@ -275,7 +277,7 @@ var ExtGlyde = {
 	/**
 	 * Add a definition to the (lazily created) styles map.  Note, the complete string is stored
 	 * so beware that keys like "_" and "f.setstyle" are added too
-	 * @param name string: the name of the style 
+	 * @param name string: the name of the style
 	 * @param data map: the complete arguments string
 	 */
 	setStyle: function( name, data ) {
@@ -305,7 +307,7 @@ var ExtGlyde = {
 		  window.title = wc;
 		  document.title = wc;
 		}
-		_.e( "windowtitlebar" ).style["display"] = (wc ? "block" : "none");
+		_.e( "windowtitlebar" ).style.display = "none";// (wc ? "block" : "none");
 		return 1;
   },
 
@@ -330,7 +332,7 @@ var ExtGlyde = {
 		ExtGlue.resume_label = (
 		    done_label + "\t" +
 		    Dict.valueOf( d_w, "onerrorgoto", done_label ) + "\t" +
-		    Dict.valueOf( d_w, "onunsupportedgoto", done_label ) 
+		    Dict.valueOf( d_w, "onunsupportedgoto", done_label )
 		  );
 		return ExtFrontEnd.GLUE_STOP_ACTION;		// expects labels to be DONE|ERROR|UNSUPPORTED
 	},
@@ -339,67 +341,15 @@ var ExtGlyde = {
 	writeAs: function( s_id, d_args ) {
 	  "use strict";
 		ExtGlyde.updateFromStyle( d_args );
-		var text = Dict.valueOf( d_args, "value" );
-		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var x = ExtGlyde.Rect.getLeft( rect );
-		var y = ExtGlyde.Rect.getTop( rect );
-		var rw = ExtGlyde.Rect.getWidth( rect );
-		var rh = ExtGlyde.Rect.getHeight( rect );
-		var size = Dict.intValueOf( d_args, "size", 2 );
-		var thickness = Dict.intValueOf( d_args, "thickness", 1 );
-		var tw = (VecText.getGlyphWidth( size, thickness ) * text.length);
-		var th = VecText.getGlyphHeight( size, thickness );
-		var tx, ty;
-		if( rw > 0 ) {
-			var align = Dict.valueOf( d_args, "align", "2" );
-			if( (align == "2") || (align == "centre") ) {
-				tx = (x + ((rw - tw) / 2));
-			} else if( (align == "1" ) || (align == "right") ) {
-				tx = (x + (rw - tw));
-			} else {
-				tx = x;
-			}
-		} else {
-			rw = tw;
-			tx = x;
-		}
-		if( rh > 0 ) {
-			ty = (y + ((rh - th) / 2));
-		} else {
-			rh = th;
-			ty = y;
-		}
-		VecText.drawString( ExtGlyde.getBitmap(), text, Dict.valueOf( d_args, "colour", "#000" ), tx, ty, size, thickness, (thickness + 1) );
-		rect = ExtGlyde.Rect.create( x, y, rw, rh );    // Dict: ExtGlyde.Rect
-		return ExtGlyde.buttonise( s_id, rect, d_args );
+	  if( !Dict.containsKey( d_args, "textcolour" ) ) {
+		  Dict.set( d_args, "textcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	  }
+		return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 
 	drawAs: function( s_id, d_args ) {
 		ExtGlyde.updateFromStyle( d_args );
-		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var rid = Dict.valueOf( d_args, "id", Dict.valueOf( d_args, "resource" ) );
-		if( ExtGlyde.resources !== null ) {
-			var b = rid.indexOf( '.' );
-			if( b > -1 ) {
-				var resid = rid.substring( 0, b );
-				var imgid = rid.substring( (b + 1) );
-				var keys = Dict.keys( ExtGlyde.resources );
-				for( var i = 0; i < keys.length; i++ ) {
-				  var imgmap = Dict.valueOf( ExtGlyde.resources, keys[i] );    // imgmap: ExtGlyde.ImageMap
-				  var x = ExtGlyde.Rect.getLeft( rect );
-				  var y = ExtGlyde.Rect.getTop( rect );
-					if( ExtGlyde.ImageMap.drawToCanvas( imgmap, imgid, ExtGlyde.getBitmap(), x, y ) ) {
-						var maprect = ExtGlyde.ImageMap.getRectWithId( imgmap, imgid );
-						var imgrect = ExtGlyde.Rect.create( 
-						    x, y, 
-						    ExtGlyde.Rect.getWidth( maprect ), ExtGlyde.Rect.getHeight( maprect ) 
-						  );
-						return ExtGlyde.buttonise( s_id, imgrect, d_args );
-					}
-				}
-			}
-		}
-		return false;
+		return ExtGlyde.createEntityAs( s_id, d_args );
 	},
 
 	markAs: function( s_id, d_args ) {
@@ -413,14 +363,132 @@ var ExtGlyde = {
 
 	paintRectAs: function( s_id, d_args, b_filled ) {
 		ExtGlyde.updateFromStyle( d_args );
+	  if( !Dict.containsKey( d_args, "linecolour" ) ) {
+	    Dict.set( d_args, "linecolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	  }
+	  if( b_filled ) {
+	    if( !Dict.containsKey( d_args, "fillcolour" ) ) {
+	      Dict.set( d_args, "fillcolour", Dict.valueOf( d_args, "colour", "#000" ) );
+	    }
+	  }
+	  return ExtGlyde.createEntityAs( s_id, d_args );
+	},
+	
+	createEntityAs: function( s_id, d_args ) {
+		/* param        used by     does
+		    value       text        the text value
+		    size        text
+		    thickness   text
+		    textcolour  text        text colour
+		    linecolour  rect        the border colour
+		    fillcolour  filledrect  the fill colour
+		    align       text        text alignment
+		*/
+
 		var rect = ExtGlyde.Rect.createFromCommandArgs( d_args );
-		var d = Dict.create();
-  	Dict.set( d, "rect", rect );
-    Dict.set( d, "colour", Dict.valueOf( d_args, "colour", "#000" ) );
-		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, b_filled );
+
+		// if we're given an ID or RESOURCE value, the width and height values will be replaced
+		//  with those of the resource
+	  var resource = null, resid, imgid;
+    if( Dict.containsKey( d_args, "id" ) || Dict.containsKey( d_args, "resource" ) ) {
+  		var rid = Dict.valueOf( d_args, "id", Dict.valueOf( d_args, "resource" ) );
+	  	if( ExtGlyde.resources == null ) {
+	  	  return false;
+	  	}
+			var b = rid.indexOf( '.' );
+			if( b > -1 ) {
+				resid = rid.substring( 0, b );
+				imgid = rid.substring( (b + 1) );
+				if( Dict.containsKey( ExtGlyde.resources, resid ) ) {
+				  resource = Dict.valueOf( ExtGlyde.resources, resid );    // imgmap: ExtGlyde.ImageMap
+				  var resrect = ExtGlyde.ImageMap.getRectWithId( resource, imgid );
+          rect = ExtGlyde.Rect.create(
+		          ExtGlyde.Rect.getLeft( rect ),
+		          ExtGlyde.Rect.getTop( rect ),
+		          ExtGlyde.Rect.getWidth( resrect ),
+		          ExtGlyde.Rect.getHeight( resrect )
+		        );
+  			} else {
+	  		  Glue._error( ("[Glyde] No such resource: " + resid) );
+		  	  return false;
+			  }
+		  } else {
+		    Glue._error( ("[Glyde] Invalid resource: " + rid) );
+		    return false;
+		  }
+    }
+
+		// filled rect first, then empty rect, resource and text
+		var d, x, y;
+		if( Dict.containsKey( d_args, "fillcolour" ) ) {
+  		d = Dict.create();
+    	Dict.set( d, "rect", rect );
+      Dict.set( d, "colour", Dict.valueOf( d_args, "fillcolour", "#000" ) );
+  		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, true );
+		}
+		if( Dict.containsKey( d_args, "linecolour" ) ) {
+  		d = Dict.create();
+    	Dict.set( d, "rect", rect );
+      Dict.set( d, "colour", Dict.valueOf( d_args, "linecolour", "#000" ) );
+  		ExtGlyde._drawRect( ExtGlyde.getBitmap(), d, false );
+		}
+
+    if( resource !== null ) {
+		  x = ExtGlyde.Rect.getLeft( rect );
+		  y = ExtGlyde.Rect.getTop( rect );
+			if( !ExtGlyde.ImageMap.drawToCanvas( resource, imgid, ExtGlyde.getBitmap(), x, y ) ) {
+			  Glue._error( "[Glyde] Unable to draw resource" );
+			  return false;
+			}
+    }
 		
+		var text = Dict.valueOf( d_args, "value" );
+		if( text && (text.length > 0) ) {
+  		x = ExtGlyde.Rect.getLeft( rect );
+  		y = ExtGlyde.Rect.getTop( rect );
+  		var rw = ExtGlyde.Rect.getWidth( rect );
+  		var rh = ExtGlyde.Rect.getHeight( rect );
+  		var size = Dict.intValueOf( d_args, "size", 2 );
+  		var thickness = Dict.intValueOf( d_args, "thickness", 1 );
+  		var tw = (VecText.getGlyphWidth( size, thickness ) * text.length);
+  		var th = VecText.getGlyphHeight( size, thickness );
+  		var tx, ty;
+  		if( rw > 0 ) {
+  			var align = Dict.valueOf( d_args, "align", "2" );
+  			if( (align == "2") || (align == "centre") ) {
+  				tx = (x + ((rw - tw) / 2));
+  			} else if( (align == "1" ) || (align == "right") ) {
+  				tx = (x + (rw - tw));
+  			} else {
+  				tx = x;
+  			}
+  		} else {
+  			rw = tw;
+  			tx = x;
+  		}
+  		if( rh > 0 ) {
+  			ty = (y + ((rh - th) / 2));
+  		} else {
+  			rh = th;
+  			ty = y;
+  		}
+  		VecText.drawString( ExtGlyde.getBitmap(), text, Dict.valueOf( d_args, "textcolour", "#000" ), tx, ty, size, thickness, (thickness + 1) );
+  		// if w/h were 0 then replace with the text w/h
+  		rect = ExtGlyde.Rect.create( x, y, rw, rh );    // Dict: ExtGlyde.Rect
+		}
 		return ExtGlyde.buttonise( s_id, rect, d_args );
 	},
+	
+	_align: function( i_xy, i_wh, i_align, i_size ) {
+	  switch( i_align ) {
+	    case 0:     // left
+	      return i_xy;
+      case 1:     // right
+        return (i_xy + (i_wh - i_size));
+      case 2:     // center
+        return (i_xy + ((i_wh - i_size) / 2));
+	  }
+	 },
 
 	buttonise: function( s_id, d_rect, d_args ) {
 	  "use strict";
@@ -456,7 +524,7 @@ var ExtGlyde = {
 			return;
 		}
 		if( Dict.containsKey( d_a, "style" ) ) {
-			var style = Dict.valueOf( styles, Dict.valueOf( d_a, "style" ) );
+			var style = Dict.valueOf( ExtGlyde.styles, Dict.valueOf( d_a, "style" ) );
 			var keys = Dict.keys( style );
 			for( var i = 0; i < keys.length; i++ ) {
 				var k = keys[i];
@@ -511,7 +579,7 @@ var ExtGlyde = {
       for( var id in ExtGlyde.timers ) {
         var t = ExtGlyde.timers[id];
         t["count"]--;
-        if( t["count"] === 0 ) {
+        if( t["count"] <= 0 ) {
           t["count"] = t["reset"];
           Glue.run( t["glue"], t["label"] );
         }
@@ -524,7 +592,7 @@ var ExtGlyde = {
       ExtGlyde.timer_manager = window.setInterval( ExtGlyde._timerFired, 100 );   // install our timer
       ExtGlyde.timers = {};
     }
-    var t = { 
+    var t = {
         "glue": o_glue,
         "count": i_tenths,
         "reset": i_tenths,
@@ -556,7 +624,7 @@ var ExtGlyde = {
   // keyboard handling
   _keyDownHandler: function( f_glue, e ) {
     e = (e || window.event);
-    var kmap = { 
+    var kmap = {
         37: "direction_left", 38: "direction_up", 39: "direction_right",
         40: "direction_down", 27: "escape", 9: "tab", 13: "enter",
         8: "backspace", 46: "delete", 112: "f1", 113: "f2", 114: "f3", 115: "f4",
@@ -594,7 +662,7 @@ var ExtGlyde = {
 	  create: function( i_x, i_y, i_w, i_h, s_label ) {   // Dict: ExtGlyde.Button
 	    return Button.createFromRect(
 	        ExtGlyde.Rect.create( i_x, i_y, i_w, i_h ),
-	        s_label 
+	        s_label
       );
 	  },
 	  
@@ -717,8 +785,8 @@ var ExtGlyde = {
 			if( src !== null ) {
 				var w = ExtGlyde.Rect.getWidth( src );
 				var h = ExtGlyde.Rect.getHeight( src );
-				o_context.drawImage( 
-				    o_imap.image, 
+				o_context.drawImage(
+				    o_imap.image,
 				    ExtGlyde.Rect.getLeft( src ), ExtGlyde.Rect.getTop( src ), w, h,
 				    i_x, i_y, w, h
 				  );
