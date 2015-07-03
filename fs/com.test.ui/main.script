@@ -6,7 +6,7 @@ f.setViewWidth 400 height 400
 f.setStyle "closebutton" width 30 height 30 textcolour "#f00" linecolour "#f00" fillcolour "#faa" align "centre"
 f.setStyle "testbutton" width 300 height 25 textcolour "#0a0" linecolour "#0a0" fillcolour "#afa" align "left"
 
-f.writeAs "info" atX 10 atY 10 value " Info" style "testbutton" onClickGoto :INFO
+f.writeAs "tell" atX 10 atY 10 value " Tell" style "testbutton" onClickGoto :TELL
 f.writeAs "choose" atX 10 atY 40 value " Choose" style "testbutton" onClickGoto :CHOOSE
 f.writeAs "ask" atX 10 atY 70 value " Ask" style "testbutton" onClickGoto :ASK
 f.writeAs "stop_timers" atX 10 atY 120 value "Stop All Timers" style "testbutton" onClickGoto :STOP_ALL
@@ -29,8 +29,8 @@ stop
   platform.exec "ui" withArgs "choose -prompt \qChoose One\q -items \qhello/world/from/me\q -value 2 -to test.txt" onDoneGoto :READ onErrorGoto :FAIL
   stop
 
-:INFO
-  platform.exec "ui" withArgs "info -prompt \qAbout\q -value \qui.exe|| ||(c)Cylexia\q -to test.txt" onDoneGoto :READ onErrorGoto :FAIL
+:TELL
+  platform.exec "ui" withArgs "tell -prompt \qAbout\q -value \qui.exe// //(c)Cylexia\q -to test.txt" onDoneGoto :READ onErrorGoto :FAIL
   stop
 
 :READ
