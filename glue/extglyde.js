@@ -157,8 +157,8 @@ var ExtGlyde = {
 					delete ExtGlyde.resources[wc];
 				}
 
-			} else if( cmd == "setstyle" ) {
-				ExtGlyde.setStyle( wc, w );
+			} else if( (cmd == "definestyle") || (cmd == "setstyle") ) {  // phase out "setstyle"
+				ExtGlyde.defineStyle( wc, w );
 
 			} else if( cmd == "getlastactionid" ) {
 				Dict.set( vars, Dict.valueOf( w, "into" ), ExtGlyde.last_action_id );
@@ -280,10 +280,11 @@ var ExtGlyde = {
 	 * @param name string: the name of the style
 	 * @param data map: the complete arguments string
 	 */
-	setStyle: function( name, data ) {
+	defineStyle: function( name, data ) {
 		if( ExtGlyde.styles === null ) {
 			ExtGlyde.styles = Dict.create();
 		}
+		ExtGlyde.updateFromStyle( data );
 		Dict.set( ExtGlyde.styles, name, data );
 	},
 
