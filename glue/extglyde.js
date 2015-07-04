@@ -148,6 +148,8 @@ var ExtGlyde = {
 
 			} else if( (cmd == "clear") || (cmd == "clearview") ) {
 				ExtGlyde.clearUI();
+			} else if( cmd == "shade" ) {
+			  ExtGlyde.shadeUI();
 
 			} else if( cmd == "loadresource" ) {
 				return ExtGlyde.loadResource( glue, wc, Dict.valueOf( w, "as" ) );
@@ -324,6 +326,39 @@ var ExtGlyde = {
 		ExtGlyde.keys = Dict.create();
 		ExtGlyde.setSize( ExtGlyde.window_width, ExtGlyde.window_height );
 	},
+
+	shadeUI: function() {
+		ExtGlyde.button_sequence = [];
+		if( ExtGlyde.buttons !== null ) {
+		  Dict.delete( ExtGlyde.buttons );
+		}
+		ExtGlyde.buttons = Dict.create();
+		if( ExtGlyde.keys !== null ) {
+		  Dict.delete( ExtGlyde.keys );
+		}
+		ExtGlyde.keys = Dict.create();
+		
+		var context = ExtGlyde.getBitmap();
+
+    var i, e, s
+    if( ExtGlyde.window_width > ExtGlyde.window_height ) {
+      e = (ExtGlyde.window_width * 2);
+      s = ExtGlyde.window_height;
+    } else {
+      e = (ExtGlyde.window_height * 2);
+      s = ExtGlyde.window_width;
+    }
+    var context = ExtGlyde.getBitmap()
+    context.fillStyle = "none";
+    context.strokeStyle = "rgb(0,0,0)";
+    context.lineWidth = 1;
+    context.beginPath();
+    for( i = 0; i <= e; i += 10 ) {
+      context.moveTo( i, 0 );
+      context.lineTo( (i - s), s );
+    }
+    context.stroke();
+  },
 
 	doAction: function( s_action, d_w ) {
 	  "use strict";
