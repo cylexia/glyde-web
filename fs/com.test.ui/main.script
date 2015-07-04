@@ -3,17 +3,10 @@
 f.setTitle "Test App"
 f.setViewWidth 400 height 400
 
-f.setStyle "closebutton" width 30 height 30 textcolour "#f00" linecolour "#f00" fillcolour "#faa" align "centre"
-f.setStyle "testbutton" width 300 height 25 textcolour "#0a0" linecolour "#0a0" fillcolour "#afa" align "left"
+f.defineStyle "closebutton" width 30 height 30 textcolour "#f00" linecolour "#f00" fillcolour "#faa" align "centre"
+f.defineStyle "testbutton" width 300 height 25 textcolour "#0a0" linecolour "#0a0" fillcolour "#afa" align "left"
 
-f.writeAs "tell" atX 10 atY 10 value " Tell" style "testbutton" onClickGoto :TELL
-f.writeAs "choose" atX 10 atY 40 value " Choose" style "testbutton" onClickGoto :CHOOSE
-f.writeAs "ask" atX 10 atY 70 value " Ask" style "testbutton" onClickGoto :ASK
-f.writeAs "stop_timers" atX 10 atY 120 value "Stop All Timers" style "testbutton" onClickGoto :STOP_ALL
-f.writeAs "exit" atX 365 atY 5 value "X" onClickGoto :EXIT style "closebutton"
-
-f.onKey "escape" goto :ESC
-
+gosub :UI
 # timer test
 N = @ 0
 TIMER_ON = @ 1
@@ -21,21 +14,37 @@ f.startTimerWithInterval 10 onTickGoto :TIMER_TEST
 
 stop
 
+:UI
+    f.clear
+    f.writeAs "tell" atX 10 atY 10 value " Tell" style "testbutton" onClickGoto :TELL
+    f.writeAs "choose" atX 10 atY 40 value " Choose" style "testbutton" onClickGoto :CHOOSE
+    f.writeAs "ask" atX 10 atY 70 value " Ask" style "testbutton" onClickGoto :ASK
+    f.writeAs "stop_timers" atX 10 atY 120 value " Stop All Timers" style "testbutton" onClickGoto :STOP_ALL
+    f.writeAs "exit" atX 365 atY 5 value "X" onClickGoto :EXIT style "closebutton"
+    
+    f.onKey "escape" goto :ESC
+    return
+
+
 :ASK
+  f.shade
   platform.exec "ui" withArgs "ask -prompt \qYour Name\q -value Chris -to test.txt" onDoneGoto :READ onErrorGoto :FAIL
   stop
 
 :CHOOSE
+  f.shade
   platform.exec "ui" withArgs "choose -prompt \qChoose One\q -items \qhello/world/from/me\q -value 2 -to test.txt" onDoneGoto :READ onErrorGoto :FAIL
   stop
 
 :TELL
+  f.shade
   platform.exec "ui" withArgs "tell -prompt \qAbout\q -value \qui.exe// //(c)Cylexia\q -to test.txt" onDoneGoto :READ onErrorGoto :FAIL
   stop
 
 :READ
   T = platform.readFromFile "test.txt"
   echo T
+  gosub :UI
   stop
   
 :FAIL
