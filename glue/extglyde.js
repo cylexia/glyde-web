@@ -165,7 +165,7 @@ var ExtGlyde = {
 			} else if( cmd == "getlastactionid" ) {
 				Dict.set( vars, Dict.valueOf( w, "into" ), ExtGlyde.last_action_id );
 
-			} else if( cmd == "onkey" ) {
+			} else if( cmd == "onkeypressed" ) {
 				if( ExtGlyde.keys === null ) {
 					ExtGlyde.keys = Dict.create();
 				}
@@ -661,11 +661,11 @@ var ExtGlyde = {
   _keyDownHandler: function( f_glue, e ) {
     e = (e || window.event);
     var kmap = {
-        37: "direction_left", 38: "direction_up", 39: "direction_right",
-        40: "direction_down", 27: "escape", 9: "tab", 13: "enter",
-        8: "backspace", 46: "delete", 112: "f1", 113: "f2", 114: "f3", 115: "f4",
-        116: "f5", 117: "f6", 118: "f7", 119: "f8", 120: "f9", 121: "f10",
-        122: "f11", 123: "f12"
+        37: "$direction_left", 38: "$direction_up", 39: "$direction_right",
+        40: "$direction_down", 27: "$escape", 9: "$tab", 13: "$enter",
+        8: "$backspace", 46: "$delete", 112: "$f1", 113: "$f2", 114: "$f3", 115: "$f4",
+        116: "$f5", 117: "$f6", 118: "$f7", 119: "$f8", 120: "$f9", 121: "$f10",
+        122: "$f11", 123: "$f12"
       };
     if( e.keyCode in kmap ) {
       if( ExtGlyde._notifyKeyPress( f_glue, kmap[e.keyCode] ) ) {
