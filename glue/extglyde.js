@@ -148,6 +148,8 @@ var ExtGlyde = {
 
 			} else if( (cmd == "clear") || (cmd == "clearview") ) {
 				ExtGlyde.clearUI();
+			} else if( cmd == "shade" ) {
+			  ExtGlyde.shadeUI();
 
 			} else if( cmd == "loadresource" ) {
 				return ExtGlyde.loadResource( glue, wc, Dict.valueOf( w, "as" ) );
@@ -163,7 +165,7 @@ var ExtGlyde = {
 			} else if( cmd == "getlastactionid" ) {
 				Dict.set( vars, Dict.valueOf( w, "into" ), ExtGlyde.last_action_id );
 
-			} else if( cmd == "onkey" ) {
+			} else if( cmd == "onkeypressed" ) {
 				if( ExtGlyde.keys === null ) {
 					ExtGlyde.keys = Dict.create();
 				}
@@ -324,6 +326,39 @@ var ExtGlyde = {
 		ExtGlyde.keys = Dict.create();
 		ExtGlyde.setSize( ExtGlyde.window_width, ExtGlyde.window_height );
 	},
+
+	shadeUI: function() {
+		ExtGlyde.button_sequence = [];
+		if( ExtGlyde.buttons !== null ) {
+		  Dict.delete( ExtGlyde.buttons );
+		}
+		ExtGlyde.buttons = Dict.create();
+		if( ExtGlyde.keys !== null ) {
+		  Dict.delete( ExtGlyde.keys );
+		}
+		ExtGlyde.keys = Dict.create();
+		
+		var context = ExtGlyde.getBitmap();
+
+    var i, e, s
+    if( ExtGlyde.window_width > ExtGlyde.window_height ) {
+      e = (ExtGlyde.window_width * 2);
+      s = ExtGlyde.window_height;
+    } else {
+      e = (ExtGlyde.window_height * 2);
+      s = ExtGlyde.window_width;
+    }
+    var context = ExtGlyde.getBitmap()
+    context.fillStyle = "none";
+    context.strokeStyle = "rgb(0,0,0)";
+    context.lineWidth = 1;
+    context.beginPath();
+    for( i = 0; i <= e; i += 10 ) {
+      context.moveTo( i, 0 );
+      context.lineTo( (i - s), s );
+    }
+    context.stroke();
+  },
 
 	doAction: function( s_action, d_w ) {
 	  "use strict";
@@ -626,11 +661,11 @@ var ExtGlyde = {
   _keyDownHandler: function( f_glue, e ) {
     e = (e || window.event);
     var kmap = {
-        37: "direction_left", 38: "direction_up", 39: "direction_right",
-        40: "direction_down", 27: "escape", 9: "tab", 13: "enter",
-        8: "backspace", 46: "delete", 112: "f1", 113: "f2", 114: "f3", 115: "f4",
-        116: "f5", 117: "f6", 118: "f7", 119: "f8", 120: "f9", 121: "f10",
-        122: "f11", 123: "f12"
+        37: "$direction_left", 38: "$direction_up", 39: "$direction_right",
+        40: "$direction_down", 27: "$escape", 9: "$tab", 13: "$enter",
+        8: "$backspace", 46: "$delete", 112: "$f1", 113: "$f2", 114: "$f3", 115: "$f4",
+        116: "$f5", 117: "$f6", 118: "$f7", 119: "$f8", 120: "$f9", 121: "$f10",
+        122: "$f11", 123: "$f12"
       };
     if( e.keyCode in kmap ) {
       if( ExtGlyde._notifyKeyPress( f_glue, kmap[e.keyCode] ) ) {

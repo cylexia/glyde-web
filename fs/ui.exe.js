@@ -52,7 +52,8 @@ var UiExe = {
         Dict.valueOf( d_data, "prompt" ),
         field,
         UiExe._handleAskOK,
-        UiExe._handleAskCancel
+        UiExe._handleAskCancel,
+        Dict.intValueOf( d_data, "dim" )
       );
     field.addEventListener( "keypress", UiExe._fieldKeyHandler );
     frame["uiexe.field"] = field;
@@ -86,7 +87,8 @@ var UiExe = {
         Dict.valueOf( d_data, "prompt" ),
         field,
         UiExe._handleChooseOK,
-        UiExe._handleChooseCancel
+        UiExe._handleChooseCancel,
+        Dict.intValueOf( d_data, "dim" )
       );
     field.addEventListener( "keypress", UiExe._fieldKeyHandler );
     frame["uiexe.field"] = field;
@@ -113,7 +115,8 @@ var UiExe = {
         Dict.valueOf( d_data, "prompt" ),
         field,
         UiExe._handleTellOK,
-        null
+        null,
+        Dict.intValueOf( d_data, "dim" )
       );
     field.addEventListener( "keypress", UiExe._fieldKeyHandler );
     frame["uiexe.field"] = field;
@@ -124,7 +127,7 @@ var UiExe = {
     field.focus();
   },
   
-  _createDialogFrame: function( s_text, o_innerdiv, f_on_ok, f_on_cancel ) {
+  _createDialogFrame: function( s_text, o_innerdiv, f_on_ok, f_on_cancel, i_usedimmer ) {
     var text = _.c( 'div', { "padding": "5px", "font-weight": "bold" } );
     _.at( text, s_text );
     var wrap = _.c( 'div', {
@@ -168,12 +171,16 @@ var UiExe = {
         "text-align": "center",
         "z-index": "1000",
       } );
-    var dimmer = _.c( 'div', {
-        "position": "absolute",
-        "top": "0px", "left": "0px", "width": "100%", "height": "100%",
-        "background": "#444", "opacity": "0.5"
-    } );
-    frame.appendChild( dimmer );
+    if( i_usedimmer == 1 ) {
+      var dimmer = _.c( 'div', {
+          "position": "absolute",
+          "top": "0px", "left": "0px", "width": "100%", "height": "100%",
+          "background": "#444", "opacity": "0.5"
+        } );
+      frame.appendChild( dimmer );
+    } else {
+      back.style.backgroundColor = "#ffd";
+    }
     // clientWidth is inside width taking into account borders etc.
     // offsetWidth is the total width
     var body = document.getElementsByTagName("body")[0];
