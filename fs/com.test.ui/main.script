@@ -1,7 +1,8 @@
 # test for ui
 
 f.setTitle "Test App"
-f.setViewWidth 400 height 400
+f.setViewWidth 400 height 400 background "#faf"
+f.setOffsetX 0 y 50
 
 f.defineStyle "closebutton" width 30 height 30 textcolour "#f00" linecolour "#f00" fillcolour "#faa" align "centre"
 f.defineStyle "testbutton" width 300 height 25 textcolour "#0a0" linecolour "#0a0" fillcolour "#afa" align "left"
@@ -22,7 +23,9 @@ stop
     f.writeAs "stop_timers" atX 10 atY 120 value " Stop All Timers" style "testbutton" onClickGoto :STOP_ALL
     f.writeAs "exit" atX 365 atY 5 value "X" onClickGoto :EXIT style "closebutton"
     
-    f.onKey "escape" goto :ESC
+    f.onKeyPressed "$escape" goto :EXIT
+    # 120 is "x"
+    f.onKeyPressed "#120" goto :EXIT
     return
 
 
@@ -51,11 +54,6 @@ stop
   f.writeAs "error" atX 0 atY 0 colour "#f00" value "Failed"
   stop
 
-:EXIT
-  f.exit
-  stop
-
-
 
 :TIMER_TEST
   N = increase N by 1
@@ -70,7 +68,8 @@ stop
   f.stopTimer
   stop
   
-:ESC
+:EXIT
   (TIMER_ON) goto :STOP_ALL
+  f.shade
   f.exit
   stop

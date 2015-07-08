@@ -27,7 +27,9 @@ var ExtGlyde = {
   background_colour: "#fff",
   
   _inited: false,
-
+  _offset_x: 0,
+  _offset_y: 0,
+  
   init: function( canvas, filemanager ) {
     "use strict";
     if( !ExtGlyde._inited ) {
@@ -58,7 +60,7 @@ var ExtGlyde = {
     ExtGlyde.plane.width = w;//(w + "px");
     ExtGlyde.plane.height = h;//(h + "px");
     ExtGlyde._drawRect( ExtGlyde.getBitmap(), {
-        x: 0, y: 0,
+        x: -ExtGlyde._offset_x, y: -ExtGlyde._offset_y,
         width: w, height: h,
         colour: ExtGlyde.background_colour
       }, true );
@@ -142,7 +144,10 @@ var ExtGlyde = {
 				return ExtGlyde.setupView( w );
 			} else if( cmd == "settitle" ) {
 				return ExtGlyde.setTitle( wc, w );
-
+			} else if( cmd == "setoffsetx" ) {
+			  ExtGlyde._offset_x = Dict.intValueOf( w, c );
+			  ExtGlyde._offset_y = Dict.intValueOf( w, "y", Dict.intValueOf( w, "andy" ) );
+			
 			} else if( cmd == "doaction" ) {
 				return ExtGlyde.doAction( wc, w );
 
@@ -166,13 +171,7 @@ var ExtGlyde = {
 				Dict.set( vars, Dict.valueOf( w, "into" ), ExtGlyde.last_action_id );
 
 			} else if( cmd == "onkeypressed" ) {
-				if( ExtGlyde.keys === null ) {
-					ExtGlyde.keys = Dict.create();
-				}
-				var ke = Dict.create();
-				Dict.set( ke, "label", Dict.valueOf( w, "goto" ) );
-				Dict.set( ke, "id", Dict.valueOf( w, "useid" ) );
-				Dict.set( ExtGlyde.keys, wc, ke );
+				ExtGlyde._addKeyPressedHandler( w );
 
 			} else if( cmd == "starttimerwithinterval" ) {
 			  // only one timer is supported
@@ -291,8 +290,8 @@ var ExtGlyde = {
 	},
 
 	setupView: function( w ) {
-		if( Dict.containsKey( w, "backgroundcolour" ) ) {
-			ExtGlyde.background_colour = Dict.valueOf( w, "backgroundcolour" );
+		if( Dict.containsKey( w, "background" ) ) {
+			ExtGlyde.background_colour = Dict.valueOf( w, "background" );
 		} else {
 			this.background = "#fff";
 		}
@@ -470,8 +469,8 @@ var ExtGlyde = {
 		}
 
     if( resource !== null ) {
-		  x = ExtGlyde.Rect.getLeft( rect );
-		  y = ExtGlyde.Rect.getTop( rect );
+		  x = (ExtGlyde.Rect.getLeft( rect ) + ExtGlyde._offset_x);
+		  y = (ExtGlyde.Rect.getTop( rect ) + ExtGlyde._offset_y);
 			if( !ExtGlyde.ImageMap.drawToCanvas( resource, imgid, ExtGlyde.getBitmap(), x, y ) ) {
 			  Glue._error( "[Glyde] Unable to draw resource" );
 			  return false;
@@ -480,8 +479,8 @@ var ExtGlyde = {
 		
 		var text = Dict.valueOf( d_args, "value" );
 		if( text && (text.length > 0) ) {
-  		x = ExtGlyde.Rect.getLeft( rect );
-  		y = ExtGlyde.Rect.getTop( rect );
+		  x = (ExtGlyde.Rect.getLeft( rect ) + ExtGlyde._offset_x);
+		  y = (ExtGlyde.Rect.getTop( rect ) + ExtGlyde._offset_y);
   		var rw = ExtGlyde.Rect.getWidth( rect );
   		var rh = ExtGlyde.Rect.getHeight( rect );
   		var size = Dict.intValueOf( d_args, "size", 2 );
@@ -584,6 +583,22 @@ var ExtGlyde = {
 		return true;
 	},
   
+  _addKeyPressedHandler: function( d_args ) {
+    if( ExtGlyde.keys === null ) {
+			ExtGlyde.keys = Dict.create();
+		}
+		var key = Dict.valueOf( d_args, Dict.valueOf( d_args, "_" ) );
+		if( key == "##" ) {
+		  key = "#";
+		} else if( (key.length > 0) && (key.charAt( 0 ) == "#") ) {
+		  key = String.fromCharCode( key.substr( 1 ) );
+		}
+		var ke = Dict.create();
+		Dict.set( ke, "label", Dict.valueOf( d_args, "goto" ) );
+		Dict.set( ke, "id", Dict.valueOf( d_args, "useid" ) );
+		Dict.set( ExtGlyde.keys, key, ke );
+  },
+  
 	_drawRect: function( o_context, d_def, b_filled ) {
 	  "use strict";
 	  var x, y, w, h;
@@ -599,6 +614,8 @@ var ExtGlyde = {
 	    w = Dict.intValueOf( d_def, "width" );
 	    h = Dict.intValueOf( d_def, "height" );
 	  }
+	  x += ExtGlyde._offset_x;
+	  y += ExtGlyde._offset_y;
 	  if( b_filled ) {
 	    o_context.fillStyle = Dict.valueOf( d_def, "colour", "#000" );
 	    o_context.fillRect( x, y, w, h );
