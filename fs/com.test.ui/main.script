@@ -1,7 +1,7 @@
 # test for ui
 
 f.setTitle "Test App"
-f.setViewWidth 400 height 400 background "#faf"
+f.setViewWidth 400 height 400 backgroundColour "#faf"
 f.setOffsetX 0 y 50
 
 f.defineStyle "closebutton" width 30 height 30 textcolour "#f00" linecolour "#f00" fillcolour "#faa" align "centre"
@@ -51,7 +51,7 @@ stop
   stop
   
 :FAIL
-  f.writeAs "error" atX 0 atY 0 colour "#f00" value "Failed"
+  f.writeAs "error" atX 20 atY 20 colour "#f00" value "Failed"
   stop
 
 

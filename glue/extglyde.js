@@ -290,8 +290,8 @@ var ExtGlyde = {
 	},
 
 	setupView: function( w ) {
-		if( Dict.containsKey( w, "background" ) ) {
-			ExtGlyde.background_colour = Dict.valueOf( w, "background" );
+		if( Dict.containsKey( w, "backgroundcolour" ) ) {
+			ExtGlyde.background_colour = Dict.valueOf( w, "backgroundcolour" );
 		} else {
 			this.background = "#fff";
 		}
