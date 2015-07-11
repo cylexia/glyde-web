@@ -160,6 +160,9 @@ console.log( "Loaded everything, launching app: " + Glyde._run_app );
     					Dict.set( vars, value.substring( 0, e ), value.substring( (e + 1) ) );
     				}
 					} else {
+					  if( Dict.containsKey( data, key ) ) {
+					    value = (Dict.valueOf( data, key ) + "\n" + value);
+					  }
 					  Dict.set( data, key, value );
 					}
 				}
@@ -228,12 +231,20 @@ var GlydeRT = {
 		  _.at( tb_title, "Glyde" );
 	    var app = Glyde.App.create( s_appfile );
 	    if( app ) {
-  	    var script_file = Glyde.App.getScriptFile( app );
-  	    var main_script = GlueFileManager.readText( script_file );
+  	    var script_files = Utils.split( Glyde.App.getScriptFile( app ), "\n" );
+  	    var script_idx;
+  	    var main_script = "", script;
+  	    for( script_idx = 0; script_idx < script_files.length; script_idx++ ) {
+  	      script = GlueFileManager.readText( script_files[script_idx] );
+  	      if( script ) {
+  	        main_script += (script + "\n");
+  	      } else {
+  	        // TODO: warn unable to load script
+  	      }
+  	    }
   	    if( main_script ) {
   	      var vars = Glyde.App.getVarsMap( app );   // already an object/map so no need to convert
   	    
-  	      //  TODO: "includes" need to be parsed and added to the start/end of the script
   				Glue.load( GlydeRT.glue, main_script, vars );
   				GlydeRT._showRuntime();
   				Glue.run( GlydeRT.glue );
