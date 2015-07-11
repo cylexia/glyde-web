@@ -8,10 +8,24 @@ var Glyde = {
   _run_app: "",
   
   startApp: function() {
+    var args = Utils.getDocumentArgs();
+    var fs = "fs.glyde";
+    if( args && args["fs"] ) {
+      fs = (args["fs"] + ".glyde");
+    }
+    var loadview = _.e( "loadview" );
+    Glyde._verbose = (args && args["verbose"] && (Utils.isTrueString( args["verbose"] )));
+    
+    if( Glyde._verbose ) {
+      _.rt( loadview, ("Loading from " + fs + "...") );
+    } else {
+      _.rt( loadview, "Loading..." );
+    }
+    
     // we look for a file called "fs.glyde" in this folder to load and parse
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = Glyde._startWithFS;
-    xhr.open( "GET", "fs.glyde", true );
+    xhr.open( "GET", fs, true );
     xhr.send();
   },
   
@@ -71,8 +85,12 @@ var Glyde = {
     			xhr.open( "GET", (root + path_src), true );
     			xhr.send();
         }
-console.log( "Waiting for resources..." );
+        if( Glyde._verbose ) {
+          console.log( "Waiting for resources..." );
+        }
         Glyde._checker_interval_id = window.setInterval( Glyde._checkLoaded, 250 );
+      } else {
+        _.rt( _.e( "loadview" ), "Failed to load filesystem definition" );
       }
     }
   },
@@ -86,7 +104,7 @@ console.log( "Waiting for resources..." );
 		    ta["glyde.complete"] = true;
       } else {
         window.clearInterval( Glyde._checker_interval_id );
-        window.alert( "Unable to load resource, try refreshing the page?" );
+        _.rt( _.e( "loadview" ), "Failed to load text resource" );
       }
     }
   },
@@ -95,14 +113,16 @@ console.log( "Waiting for resources..." );
     // have we been going for 10 seconds?
     if( Glyde._checker_timeout++ == 40 ) {
       window.clearInterval( Glyde._checker_interval_id );
-      window.alert( "Loading is taking too long, try refreshing the page?" );
+      _.rt( _.e( "loadview" ), "Loading is taking too long, try refreshing the page?" );
     }
 	  // Check to see if text files have loaded
 	  var i;
     var tas = document.getElementsByTagName( "textarea" );
     for( i = 0; i < tas.length; i++ ) {
       if( !tas[i]["glyde.complete"] ) {
-        //console.log( "textarea " + i + " isn't complete yet" + Math.random() );
+        if( Glyde._verbose ) {
+          _.rt( _.e( "loadview" ), ("Text resource " + i + " isn't complete yet") );
+        }
         return;
       }
     }
@@ -111,7 +131,9 @@ console.log( "Waiting for resources..." );
     var imgs = document.getElementsByTagName( "img" );
     for( i = 0; i < imgs.length; i++ ) {
       if( !imgs[i].complete ) {
-        //console.log( "image " + i + " isn't complete yet" + Math.random() );
+        if( Glyde._verbose ) {
+          _.rt( _.e( "loadview" ), ("Image resource " + i + " isn't complete yet") );
+        }
         return;
       }
     }
@@ -121,14 +143,18 @@ console.log( "Waiting for resources..." );
   	for( i = 0; i < scripts.length; i++ ) {
   		if( scripts["glyde.exec_app_src"] ) {
   			if( !GluePlatform.isExecAppAvailable( scripts["glyde.exec_app_src"] ) ) {
-  				//console.log( "exec app " + i + " is not loaded" + Math.random() );
+          if( Glyde._verbose ) {
+            _.rt( _.e( "loadview" ), ("Script resource " + i + " isn't complete yet") );
+          }
   				return false;
   			}
   		}
   	}
     // everythings loaded!
     window.clearInterval( Glyde._checker_interval_id );
-console.log( "Loaded everything, launching app: " + Glyde._run_app );
+    if( Glyde._verbose ) {
+      console.log( "Loaded everything, launching app: " + Glyde._run_app );
+    }
     document.getElementById( "loadview" ).style["display"] = "none";
     GlydeRT.runApp( Glyde._run_app );
   },
