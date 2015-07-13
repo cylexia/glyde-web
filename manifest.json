@@ -9,10 +9,10 @@
     },
   "app": {
     "urls": [
-        "http://localhost/glyde-web/glydert.html"
+        "http://localhost:8887/glyde-web/glydert.html"
       ],
     "launch": {
-        "web_url": "http://localhost/glyde-web/glydert.html"
+        "web_url": "http://localhost:8887/glyde-web/glydert.html"
       }
     },
   "permissions": [
