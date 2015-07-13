@@ -206,6 +206,13 @@ var ExtGlyde = {
 			  return Glue.PLUGIN_DONE_EXIT_ALL;
 			
 			} else {
+			  if( ExtGlyde.styles && cmd.substr( (cmd.length - 2) ) == "as" ) {
+			    cmd = cmd.substr( 0, (cmd.length - 2) );
+			    if( Dict.containsKey( ExtGlyde.styles, cmd ) ) {
+			      Dict.set( w, "style", cmd );
+			      return ExtGlyde.writeAs( cmd, w )
+			    }
+			  }
 				return -1;
 			}
 			return 1;
@@ -372,7 +379,6 @@ var ExtGlyde = {
 		return ExtFrontEnd.GLUE_STOP_ACTION;		// expects labels to be DONE|ERROR|UNSUPPORTED
 	},
 
-	// TODO: this should use a rect and alignment options along with colour support
 	writeAs: function( s_id, d_args ) {
 	  "use strict";
 		ExtGlyde.updateFromStyle( d_args );

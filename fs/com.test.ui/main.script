@@ -17,7 +17,7 @@ stop
 
 :UI
     f.clear
-    f.writeAs "tell" atX 10 atY 10 value " Tell" style "testbutton" onClickGoto :TELL
+    f.testButtonAs "tell" atX 10 atY 10 value " Tell" onClickGoto :TELL
     f.writeAs "choose" atX 10 atY 40 value " Choose" style "testbutton" onClickGoto :CHOOSE
     f.writeAs "ask" atX 10 atY 70 value " Ask" style "testbutton" onClickGoto :ASK
     f.writeAs "stop_timers" atX 10 atY 120 value " Stop All Timers" style "testbutton" onClickGoto :STOP_ALL
