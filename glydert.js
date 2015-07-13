@@ -6,6 +6,7 @@ var Glyde = {
   _checker_interval_id: null,
   _checker_timeout: 0,
   _run_app: "",
+  _verbose: false,
   
   startApp: function() {
     var args = Utils.getDocumentArgs();
@@ -43,6 +44,9 @@ var Glyde = {
           item = document.createElement( "script" );
 	        item["glyde.exec_app_src"] = rows[i];
           item.src = (root + rows[i]);
+          if( Glyde._verbose ) {
+            console.log( ("[Glyde] Request script: " + item.src) );
+          }
           head.appendChild( item );
         }
         
@@ -60,6 +64,9 @@ var Glyde = {
             img.src = (root + path_src);
           } else {
             img.src = path_src;
+          }
+          if( Glyde._verbose ) {
+            console.log( ("[Glyde] Request image: " + img.src) );
           }
 		      img["gluefilesystem.id"] = path_dest;
 		      img.style["display"] = "none";
@@ -79,6 +86,9 @@ var Glyde = {
     		  ta["glyde.complete"] = false;
     		  ta.style["display"] = "none";
           document.getElementsByTagName( "body" )[0].appendChild( ta );
+          if( Glyde._verbose ) {
+            console.log( ("[Glyde] Request text: " + (root + path_src)) );
+          }
 		      var xhr = new XMLHttpRequest();
           xhr["glyde.textarea"] = ta;
     			xhr.onreadystatechange = Glyde._setTextAreaFromXHR;
@@ -86,7 +96,7 @@ var Glyde = {
     			xhr.send();
         }
         if( Glyde._verbose ) {
-          console.log( "Waiting for resources..." );
+          console.log( "[Glyde] Waiting for resources..." );
         }
         Glyde._checker_interval_id = window.setInterval( Glyde._checkLoaded, 250 );
       } else {
@@ -153,7 +163,7 @@ var Glyde = {
     // everythings loaded!
     window.clearInterval( Glyde._checker_interval_id );
     if( Glyde._verbose ) {
-      console.log( "Loaded everything, launching app: " + Glyde._run_app );
+      console.log( "[Glyde] Loaded everything, launching app: " + Glyde._run_app );
     }
     document.getElementById( "loadview" ).style["display"] = "none";
     GlydeRT.runApp( Glyde._run_app );
