@@ -43,7 +43,7 @@ var Glyde = {
         for( rows = Utils.split( Dict.valueOf( fs, "script" ), "\n" ), i = 0; i < rows.length; i++ ) {
           item = document.createElement( "script" );
 	        item["glyde.exec_app_src"] = rows[i];
-          item.src = (root + rows[i]);
+          item.src = Glyde._localiseFile( rows[i], root );
           if( Glyde._verbose ) {
             console.log( ("[Glyde] Request script: " + item.src) );
           }
@@ -60,11 +60,7 @@ var Glyde = {
           } else {
             path_src = path_dest = rows[i];
           }
-          if( path_src.indexOf( "://" ) == -1 ) {
-            img.src = (root + path_src);
-          } else {
-            img.src = path_src;
-          }
+          img.src = Glyde._localiseFile( path_src, root );
           if( Glyde._verbose ) {
             console.log( ("[Glyde] Request image: " + img.src) );
           }
@@ -92,7 +88,7 @@ var Glyde = {
 		      var xhr = new XMLHttpRequest();
           xhr["glyde.textarea"] = ta;
     			xhr.onreadystatechange = Glyde._setTextAreaFromXHR;
-    			xhr.open( "GET", (root + path_src), true );
+    			xhr.open( "GET", Glyde._localiseFile( path_src, root ), true );
     			xhr.send();
         }
         if( Glyde._verbose ) {
@@ -102,6 +98,22 @@ var Glyde = {
       } else {
         _.rt( _.e( "loadview" ), "Failed to load filesystem definition" );
       }
+    }
+  },
+  
+  _localisePath: function( s_path, s_root ) {
+    if( s_path.length > 0 ) {
+      if( s_path.charAt( 0 ) == "#" ) {
+        s_path = chrome.extension.getURL( s_path.substr( 1 ) );
+      }
+    }
+    if( s_path.indexOf( "://" ) == -1 ) {
+      s_path = (s_root + s_path);
+      if( s_path.charAt( 0 ) == "#" ) {
+        s_path = chrome.extension.getURL( s_path.substr( 1 ) );
+      }
+    } else {
+      return s_path;
     }
   },
   
